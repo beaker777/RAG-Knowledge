@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Knowledge AI Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 text-slate-800">
+<div class="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+    <header class="mb-6">
+        <div class="rounded-3xl border border-sky-100 bg-white/85 p-6 shadow-[0_20px_60px_-30px_rgba(14,165,233,0.35)] backdrop-blur">
+            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-sm font-medium uppercase tracking-[0.28em] text-sky-500">AI Chat</p>
+                    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">简单清爽的流式对话页</h1>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                        基于 EventSource 调用 Spring AI 流式接口，实时渲染 <code>result.output.content</code>。
+                    </p>
+                </div>
+                <div class="rounded-2xl bg-sky-50 px-4 py-3 text-sm text-slate-600">
+                    <div>接口：<span class="font-medium text-slate-900">/api/v1/ollama/generate_stream</span></div>
+                    <div class="mt-1">结束标识：<span class="font-medium text-emerald-600">STOP</span></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="grid flex-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <section class="rounded-3xl border border-sky-100 bg-white/90 p-5 shadow-[0_20px_60px_-35px_rgba(56,189,248,0.45)]">
+            <h2 class="text-lg font-semibold text-slate-900">请求参数</h2>
+            <p class="mt-1 text-sm text-slate-500">支持配置接口地址、模型和输入内容。</p>
+
+            <div class="mt-5 space-y-4">
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">接口地址</span>
+                    <input id="baseUrl" type="text"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                           value="http://localhost:8090/api/v1/ollama/generate_stream">
+                </label>
+
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">模型</span>
+                    <input id="model" type="text"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                           value="deepseek-r1:7b">
+                </label>
+
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">输入内容</span>
+                    <textarea id="message" rows="6"
+                              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                              placeholder="请输入你的问题，例如：1 + 1 等于多少？"></textarea>
+                </label>
+            </div>
+
+            <div class="mt-5 flex gap-3">
+                <button id="sendBtn"
+                        class="inline-flex flex-1 items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-600 focus:outline-none focus:ring-4 focus:ring-sky-200">
+                    发送
+                </button>
+                <button id="stopBtn"
+                        class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-rose-200 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                    停止
+                </button>
+            </div>
+
+            <div class="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <div class="font-medium">说明</div>
+                <p class="mt-1 leading-6">页面默认直连本地 Spring Boot 服务 `http://localhost:8090`。若部署地址变化，直接修改接口地址即可。</p>
+            </div>
+        </section>
+
+        <section class="flex min-h-[600px] flex-col rounded-3xl border border-sky-100 bg-white/90 shadow-[0_25px_70px_-40px_rgba(34,197,94,0.35)]">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900">对话记录</h2>
+                    <p id="statusText" class="mt-1 text-sm text-slate-500">等待发送</p>
+                </div>
+                <span id="streamBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">IDLE</span>
+            </div>
+
+            <div id="chatList" class="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+                <div class="rounded-3xl border border-dashed border-sky-200 bg-sky-50/80 px-5 py-4 text-sm leading-6 text-slate-500">
+                    输入问题后点击“发送”，右侧会流式展示模型返回内容。
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const baseUrlInput = document.getElementById('baseUrl');
+    const modelInput = document.getElementById('model');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const chatList = document.getElementById('chatList');
+    const statusText = document.getElementById('statusText');
+    const streamBadge = document.getElementById('streamBadge');
+
+    let eventSource = null;
+    let currentAnswerContent = null;
+
+    function setStatus(text, badgeText, badgeClass) {
+        statusText.textContent = text;
+        streamBadge.textContent = badgeText;
+        streamBadge.className = badgeClass;
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function formatText(value) {
+        return escapeHtml(value).replaceAll('\n', '<br>');
+    }
+
+    function appendMessage(role, content, tone) {
+        const wrapper = document.createElement('div');
+        const roleText = role === 'user' ? '你' : 'AI';
+        const toneClass = tone === 'user'
+            ? 'ml-auto border-sky-200 bg-sky-50'
+            : 'mr-auto border-emerald-200 bg-emerald-50';
+
+        wrapper.className = `max-w-[85%] rounded-3xl border px-5 py-4 shadow-sm ${toneClass}`;
+        wrapper.innerHTML = `
+            <div class="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">${roleText}</div>
+            <div class="text-sm leading-7 text-slate-700">${formatText(content)}</div>
+        `;
+        chatList.appendChild(wrapper);
+        chatList.scrollTop = chatList.scrollHeight;
+        return wrapper.querySelector('div:last-child');
+    }
+
+    function closeStream() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+    }
+
+    function normalizePayload(raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed[0] || null;
+        }
+        return parsed;
+    }
+
+    function startStream() {
+        const baseUrl = baseUrlInput.value.trim();
+        const model = modelInput.value.trim();
+        const message = messageInput.value.trim();
+
+        if (!baseUrl || !model || !message) {
+            setStatus('请完整填写接口地址、模型和输入内容', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+            return;
+        }
+
+        closeStream();
+
+        if (chatList.children.length === 1 && chatList.firstElementChild.textContent.includes('输入问题后点击')) {
+            chatList.innerHTML = '';
+        }
+
+        appendMessage('user', message, 'user');
+        currentAnswerContent = appendMessage('assistant', '', 'assistant');
+
+        const apiUrl = `${baseUrl}?model=${encodeURIComponent(model)}&message=${encodeURIComponent(message)}`;
+        setStatus('正在连接流式接口...', 'STREAM', 'rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-600');
+
+        eventSource = new EventSource(apiUrl);
+
+        eventSource.onmessage = (event) => {
+            try {
+                const payload = normalizePayload(event.data);
+                if (!payload || !payload.result) {
+                    return;
+                }
+
+                const content = payload.result.output && payload.result.output.content;
+                const finishReason = payload.result.metadata && payload.result.metadata.finishReason;
+
+                if (typeof content === 'string' && content.length > 0) {
+                    currentAnswerContent.innerHTML = formatText((currentAnswerContent.textContent || '') + content);
+                    chatList.scrollTop = chatList.scrollHeight;
+                }
+
+                if (finishReason === 'STOP') {
+                    setStatus('应答完成', 'DONE', 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600');
+                    closeStream();
+                } else {
+                    setStatus('模型正在输出中...', 'STREAM', 'rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-600');
+                }
+            } catch (error) {
+                console.error('解析流式数据失败', error, event.data);
+                setStatus('数据解析失败，请检查服务端 SSE 输出格式', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+                closeStream();
+            }
+        };
+
+        eventSource.onerror = () => {
+            setStatus('流连接已关闭或发生异常，请检查接口是否返回 SSE 数据', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+            closeStream();
+        };
+    }
+
+    sendBtn.addEventListener('click', startStream);
+    stopBtn.addEventListener('click', () => {
+        closeStream();
+        setStatus('已手动停止', 'STOPPED', 'rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-600');
+    });
+
+    messageInput.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            startStream();
+        }
+    });
+
+    setStatus('等待发送', 'IDLE', 'rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500');
+</script>
+</body>
+</html>
