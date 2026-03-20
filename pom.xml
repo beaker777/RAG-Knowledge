@@ -16,6 +16,7 @@
     </modules>
 
     <properties>
+        <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,6 +70,11 @@
             <dependency>
                 <groupId>com.beaker</groupId>
                 <artifactId>rag-knowledge-api</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.beaker</groupId>
+                <artifactId>rag-knowledge-trigger</artifactId>
                 <version>1.0</version>
             </dependency>
             <dependency>
