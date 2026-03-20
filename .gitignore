@@ -41,3 +41,4 @@ build/
 # log #
 data/**
 rag-knowledge-app/data/**
+/rag-knowledge-app/clone-repo/

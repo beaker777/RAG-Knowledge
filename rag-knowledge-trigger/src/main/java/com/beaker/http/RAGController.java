@@ -3,6 +3,10 @@ package com.beaker.http;
 import com.beaker.IRAGService;
 import com.beaker.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 import org.springframework.ai.document.Document;
@@ -11,10 +15,15 @@ import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.core.io.PathResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 /**
@@ -78,5 +87,73 @@ public class RAGController implements IRAGService {
 
         log.info("上传文件成功!");
         return Response.<String>builder().code("0000").info("success").build();
+    }
+
+    @Override
+    public Response<String> analyzeGitRepository(String repoURL, String username, String token) throws Exception {
+        String localPath = "./cloned-repo";
+        String projectName = extractProjectName(repoURL);
+
+        log.info("克隆路径: {}", new File(localPath).getAbsolutePath());
+
+        // 先清空文件夹
+        FileUtils.deleteDirectory(new File(localPath));
+
+        // 使用 git pull 仓库
+        Git git = Git.cloneRepository()
+                .setURI(repoURL)
+                .setDirectory(new File(localPath))
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, token))
+                .call();
+
+        // 依次遍历克隆的所有文件, 并向量化存储到知识库
+        Files.walkFileTree(Paths.get(localPath), new SimpleFileVisitor<>(){
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                log.info("遍历项目: {}, 解析文件: {}", projectName, file.getFileName());
+                try {
+                    TikaDocumentReader reader = new TikaDocumentReader(new PathResource(file.getFileName()));
+
+                    List<Document> documents = reader.get();
+                    documents.forEach(document -> document.getMetadata().put("knowledge", projectName));
+
+                    List<Document> splitDocument = tokenTextSplitter.apply(documents);
+
+                    pgVectorStore.accept(splitDocument);
+                } catch (Exception e) {
+                    log.error("上传知识库失败, 当前文件: {}", file.getFileName());
+                }
+
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                log.info("遍历项目: {}, 解析文件失败: {}", projectName, file.getFileName());
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        // 遍历结束, 清空本地克隆文件
+        FileUtils.deleteDirectory(new File(localPath));
+
+        // 知识库若不存在当前项目则加入
+        RList<String> ragTags = redissonClient.getList("ragTag");
+        if (!ragTags.contains(projectName)) {
+            ragTags.add(projectName);
+        }
+
+        git.close();
+
+        log.info("遍历解析完成!");
+
+        return Response.<String>builder().code("0000").info("success").build();
+    }
+
+    private String extractProjectName(String repoURL) {
+        String[] parts = repoURL.split("/");
+        String projectNameWithGit = parts[parts.length - 1];
+
+        return projectNameWithGit.replace(".git", "");
     }
 }
