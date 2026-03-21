@@ -3,141 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 对话页面</title>
+    <title>AI Chat Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(186,230,253,0.8),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(187,247,208,0.75),_transparent_30%),linear-gradient(180deg,_#f8fbff_0%,_#f6fffb_100%)] text-slate-800">
-<div class="mx-auto flex min-h-screen max-w-[1600px] gap-5 p-4 sm:p-6">
-    <aside class="flex w-full max-w-[330px] flex-col rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_24px_70px_-35px_rgba(14,165,233,0.45)] backdrop-blur xl:max-w-[360px]">
-        <div class="rounded-[24px] border border-sky-100 bg-gradient-to-br from-sky-50 to-emerald-50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-sky-500">AI Workspace</p>
-            <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">流式对话</h1>
-            <p class="mt-2 text-sm leading-6 text-slate-500">原生 HTML + JS + Tailwind，实现会话管理和 SSE 流式输出。</p>
-            <button id="newChatBtn" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-600 focus:outline-none focus:ring-4 focus:ring-sky-200">
-                新建聊天
-            </button>
-        </div>
-
-        <div class="mt-5 rounded-[24px] border border-slate-100 bg-white/90 p-4">
-            <h2 class="text-sm font-semibold text-slate-900">接口设置</h2>
-            <div class="mt-3 space-y-3">
-                <label class="block">
-                    <span class="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">服务地址</span>
-                    <input id="serverOrigin" type="text" value="http://localhost:8090"
-                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
-                </label>
-                <label class="block">
-                    <span class="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">接口路径</span>
-                    <input id="apiPath" type="text" value="/api/v1/ollama/generate"
-                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
-                </label>
-                <label class="block">
-                    <span class="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">模型</span>
-                    <input id="model" type="text" value="deepseek-r1:1.5b"
-                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
-                </label>
-                <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                    <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">请求预览</div>
-                    <div id="requestPreview" class="mt-2 break-all font-mono text-xs leading-5 text-slate-600">
-                        http://localhost:8090/api/v1/ollama/generate?model=deepseek-r1:1.5b&message=1+1
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-5 min-h-0 flex-1 rounded-[24px] border border-slate-100 bg-white/90 p-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-900">聊天列表</h2>
-                <span id="chatCount" class="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-600">0</span>
-            </div>
-            <div id="chatList" class="mt-4 flex max-h-[calc(100vh-420px)] flex-col gap-3 overflow-y-auto pr-1"></div>
-        </div>
-    </aside>
-
-    <main class="flex min-h-[calc(100vh-32px)] flex-1 flex-col rounded-[32px] border border-white/70 bg-white/85 shadow-[0_24px_80px_-40px_rgba(34,197,94,0.35)] backdrop-blur">
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.5),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(134,239,172,0.42),_transparent_30%),linear-gradient(180deg,_#f8fcff_0%,_#f6fffb_100%)] text-slate-800">
+<div class="mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-5 sm:px-6 lg:px-8">
+    <header class="mb-5 rounded-[28px] border border-white/70 bg-white/80 px-6 py-5 shadow-[0_30px_80px_-42px_rgba(14,165,233,0.45)] backdrop-blur">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
-                <div class="flex items-center gap-3">
-                    <h2 id="activeChatTitle" class="text-xl font-semibold tracking-tight text-slate-900">未选择会话</h2>
-                    <span id="streamBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">IDLE</span>
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">RAG Knowledge</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">多模型流式对话台</h1>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                    基于 `trigger/http` 中的 OpenAI、Ollama、RAG 接口调整。支持普通流式对话与 RAG 对话，使用原生 HTML、JavaScript、Tailwind CSS 实现。
+                </p>
+            </div>
+            <nav class="flex flex-wrap gap-2">
+                <a href="./index.html" class="rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm">聊天页</a>
+                <a href="./upload.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">上传页</a>
+                <a href="./git.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">Git 页</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="grid flex-1 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <aside class="flex min-h-0 flex-col gap-5 rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_26px_80px_-44px_rgba(14,165,233,0.38)] backdrop-blur">
+            <section class="rounded-[24px] border border-sky-100 bg-gradient-to-br from-sky-50 to-emerald-50 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">会话列表</h2>
+                        <p class="mt-1 text-sm text-slate-500">支持新建、切换、重命名、删除。</p>
+                    </div>
+                    <button id="newChatBtn" class="rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600">新建聊天</button>
                 </div>
-                <p id="statusText" class="mt-1 text-sm text-slate-500">请先新建或选择一个聊天。</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="renameChatBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 focus:outline-none focus:ring-4 focus:ring-slate-100">
-                    重命名
-                </button>
-                <button id="deleteChatBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-rose-200 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-slate-100">
-                    删除
-                </button>
-            </div>
-        </div>
+                <div id="chatList" class="mt-4 flex max-h-[260px] flex-col gap-3 overflow-y-auto pr-1"></div>
+            </section>
 
-        <div id="messageList" class="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
-            <div class="rounded-[28px] border border-dashed border-sky-200 bg-sky-50/70 px-5 py-6 text-sm leading-6 text-slate-500">
-                左侧点击“新建聊天”后开始对话。支持按钮发送，也支持 <span class="font-medium text-slate-700">Ctrl/Command + Enter</span> 快捷发送。
-            </div>
-        </div>
+            <section class="rounded-[24px] border border-slate-100 bg-white p-5">
+                <h2 class="text-lg font-semibold text-slate-900">请求配置</h2>
+                <div class="mt-4 space-y-4">
+                    <label class="block">
+                        <span class="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">服务地址</span>
+                        <input id="serverOrigin" type="text" value="http://localhost:8090"
+                               class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                    </label>
+                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">模型提供方</span>
+                            <select id="provider"
+                                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                                <option value="ollama">Ollama</option>
+                                <option value="openai">OpenAI</option>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">会话模式</span>
+                            <select id="chatMode"
+                                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                                <option value="stream">普通流式</option>
+                                <option value="rag">RAG 流式</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="block">
+                        <span class="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">模型名称</span>
+                        <input id="model" type="text" value="deepseek-r1:7b"
+                               class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                    </label>
+                    <div id="ragTagWrap" class="space-y-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">知识库标签</span>
+                            <button id="refreshTagsBtn" class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-600 transition hover:bg-sky-100">刷新列表</button>
+                        </div>
+                        <select id="ragTagSelect"
+                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                            <option value="">请先加载知识库标签</option>
+                        </select>
+                        <input id="ragTagInput" type="text" placeholder="也可手动输入 ragTag"
+                               class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                    </div>
+                    <div class="rounded-[22px] bg-slate-50 px-4 py-4">
+                        <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">请求预览</div>
+                        <div id="requestPreview" class="mt-2 break-all font-mono text-xs leading-5 text-slate-600"></div>
+                    </div>
+                </div>
+            </section>
+        </aside>
 
-        <div class="border-t border-slate-100 px-5 py-4 sm:px-6">
-            <div class="rounded-[28px] border border-sky-100 bg-gradient-to-r from-white via-sky-50/60 to-emerald-50/60 p-4">
-                <label class="block">
-                    <span class="mb-2 block text-sm font-medium text-slate-700">输入内容</span>
-                    <textarea id="messageInput" rows="4"
-                              class="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                              placeholder="输入你的问题，例如：1 + 1 等于多少？"></textarea>
-                </label>
-                <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <p class="text-xs text-slate-500">流式展示来自 <code>result.output.content</code>，当 <code>finishReason = STOP</code> 时结束。</p>
-                    <div class="flex gap-2">
-                        <button id="stopBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-amber-200 hover:text-amber-600 focus:outline-none focus:ring-4 focus:ring-slate-100">
-                            停止
-                        </button>
-                        <button id="sendBtn" class="rounded-2xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600 focus:outline-none focus:ring-4 focus:ring-sky-200">
-                            发送
-                        </button>
+        <main class="flex min-h-0 flex-col rounded-[32px] border border-white/70 bg-white/88 shadow-[0_28px_85px_-46px_rgba(34,197,94,0.32)] backdrop-blur">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 id="activeChatTitle" class="text-xl font-semibold tracking-tight text-slate-900">未选择会话</h2>
+                        <span id="statusBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">IDLE</span>
+                    </div>
+                    <p id="statusText" class="mt-1 text-sm text-slate-500">请先新建或选择一个聊天。</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="renameChatBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">重命名</button>
+                    <button id="deleteChatBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-rose-200 hover:text-rose-500">删除</button>
+                </div>
+            </div>
+
+            <div id="messageList" class="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
+                <div class="rounded-[28px] border border-dashed border-sky-200 bg-sky-50/70 px-5 py-6 text-sm leading-6 text-slate-500">
+                    左侧先创建会话，再选择模型提供方和会话模式。发送时将通过 `EventSource` 调用对应的流式接口。
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 px-5 py-4 sm:px-6">
+                <div class="rounded-[28px] border border-sky-100 bg-gradient-to-r from-white via-sky-50/60 to-emerald-50/60 p-4">
+                    <label class="block">
+                        <span class="mb-2 block text-sm font-medium text-slate-700">输入内容</span>
+                        <textarea id="messageInput" rows="4"
+                                  class="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                                  placeholder="输入你的问题，例如：请根据知识库总结项目架构。"></textarea>
+                    </label>
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <p class="text-xs text-slate-500">从 <code>result.output.content</code> 取文本；当 <code>result.metadata.finishReason === 'STOP'</code> 时结束。</p>
+                        <div class="flex gap-2">
+                            <button id="stopBtn" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-200 hover:text-amber-600">停止</button>
+                            <button id="sendBtn" class="rounded-2xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600">发送</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 </div>
 
 <script>
     const serverOriginInput = document.getElementById('serverOrigin');
-    const apiPathInput = document.getElementById('apiPath');
+    const providerSelect = document.getElementById('provider');
+    const chatModeSelect = document.getElementById('chatMode');
     const modelInput = document.getElementById('model');
+    const ragTagWrap = document.getElementById('ragTagWrap');
+    const ragTagSelect = document.getElementById('ragTagSelect');
+    const ragTagInput = document.getElementById('ragTagInput');
+    const refreshTagsBtn = document.getElementById('refreshTagsBtn');
     const requestPreview = document.getElementById('requestPreview');
     const newChatBtn = document.getElementById('newChatBtn');
     const renameChatBtn = document.getElementById('renameChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
-    const sendBtn = document.getElementById('sendBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const chatList = document.getElementById('chatList');
-    const chatCount = document.getElementById('chatCount');
     const activeChatTitle = document.getElementById('activeChatTitle');
+    const statusBadge = document.getElementById('statusBadge');
     const statusText = document.getElementById('statusText');
-    const streamBadge = document.getElementById('streamBadge');
+    const chatList = document.getElementById('chatList');
     const messageList = document.getElementById('messageList');
     const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const stopBtn = document.getElementById('stopBtn');
 
     const chats = [];
     let activeChatId = null;
     let chatSequence = 1;
     let eventSource = null;
 
-    function setStatus(text, badgeText, badgeClass) {
+    function setStatus(type, text) {
+        const styles = {
+            idle: 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500',
+            ready: 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600',
+            stream: 'rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-600',
+            success: 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600',
+            error: 'rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600',
+            stopped: 'rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-600'
+        };
+        const labels = {
+            idle: 'IDLE',
+            ready: 'READY',
+            stream: 'STREAM',
+            success: 'DONE',
+            error: 'ERROR',
+            stopped: 'STOPPED'
+        };
+        statusBadge.className = styles[type];
+        statusBadge.textContent = labels[type];
         statusText.textContent = text;
-        streamBadge.textContent = badgeText;
-        streamBadge.className = badgeClass;
-    }
-
-    function updateRequestPreview() {
-        const serverOrigin = serverOriginInput.value.trim() || 'http://localhost:8090';
-        const apiPath = apiPathInput.value.trim() || '/api/v1/ollama/generate';
-        const model = modelInput.value.trim() || 'deepseek-r1:1.5b';
-        const message = messageInput.value.trim() || '1+1';
-        requestPreview.textContent = `${serverOrigin}${apiPath}?model=${model}&message=${message}`;
     }
 
     function escapeHtml(value) {
@@ -153,6 +193,35 @@
         return escapeHtml(value).replaceAll('\n', '<br>');
     }
 
+    function getSelectedRagTag() {
+        return ragTagInput.value.trim() || ragTagSelect.value.trim();
+    }
+
+    function getEndpointPath() {
+        const provider = providerSelect.value;
+        const mode = chatModeSelect.value;
+        if (provider === 'openai' && mode === 'rag') return '/api/v1/openai/generate_stream_rag';
+        if (provider === 'openai') return '/api/v1/openai/generate_stream';
+        if (mode === 'rag') return '/api/v1/ollama/generate_stream_rag';
+        return '/api/v1/ollama/generate_stream';
+    }
+
+    function updateRagVisibility() {
+        ragTagWrap.style.display = chatModeSelect.value === 'rag' ? 'block' : 'none';
+    }
+
+    function updateRequestPreview() {
+        const base = serverOriginInput.value.trim() || 'http://localhost:8090';
+        const path = getEndpointPath();
+        const model = modelInput.value.trim() || 'deepseek-r1:7b';
+        const message = messageInput.value.trim() || '你好';
+        const ragTag = getSelectedRagTag() || 'demo-rag';
+        const params = chatModeSelect.value === 'rag'
+            ? `model=${model}&ragTag=${ragTag}&message=${message}`
+            : `model=${model}&message=${message}`;
+        requestPreview.textContent = `${base}${path}?${params}`;
+    }
+
     function getActiveChat() {
         return chats.find(chat => chat.id === activeChatId) || null;
     }
@@ -164,124 +233,27 @@
         }
     }
 
-    function syncStatusForChat(chat) {
-        if (!chat) {
-            setStatus('请先新建或选择一个聊天。', 'IDLE', 'rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500');
-            return;
-        }
-
-        if (chat.streaming) {
-            setStatus('模型正在输出中...', 'STREAM', 'rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-600');
-            return;
-        }
-
-        setStatus('准备就绪，可继续发送消息。', 'READY', 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600');
-    }
-
-    function updateHeader() {
-        const activeChat = getActiveChat();
-        if (!activeChat) {
-            activeChatTitle.textContent = '未选择会话';
-            renameChatBtn.disabled = true;
-            deleteChatBtn.disabled = true;
-            return;
-        }
-
-        activeChatTitle.textContent = activeChat.title;
-        renameChatBtn.disabled = false;
-        deleteChatBtn.disabled = false;
-    }
-
-    function renderChatList() {
-        chatList.innerHTML = '';
-
-        chats.forEach(chat => {
-            const button = document.createElement('button');
-            const selected = chat.id === activeChatId;
-            const preview = chat.messages.length
-                ? chat.messages[chat.messages.length - 1].content.slice(0, 40)
-                : '还没有消息';
-
-            button.type = 'button';
-            button.className = [
-                'w-full rounded-[22px] border px-4 py-3 text-left transition',
-                selected
-                    ? 'border-sky-300 bg-sky-50 shadow-[0_16px_30px_-24px_rgba(14,165,233,0.8)]'
-                    : 'border-slate-200 bg-white hover:border-sky-200 hover:bg-sky-50/60'
-            ].join(' ');
-            button.innerHTML = `
-                <div class="flex items-center justify-between gap-3">
-                    <div class="truncate text-sm font-semibold text-slate-900">${escapeHtml(chat.title)}</div>
-                    <span class="shrink-0 rounded-full ${chat.streaming ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'} px-2.5 py-1 text-[11px] font-medium">
-                        ${chat.streaming ? 'STREAM' : 'CHAT'}
-                    </span>
-                </div>
-                <div class="mt-2 max-h-10 overflow-hidden text-xs leading-5 text-slate-500">${escapeHtml(preview || ' ')}</div>
-            `;
-            button.addEventListener('click', () => {
-                activeChatId = chat.id;
-                renderAll();
-                syncStatusForChat(chat);
+    async function loadRagTags() {
+        const origin = serverOriginInput.value.trim() || 'http://localhost:8090';
+        ragTagSelect.innerHTML = '<option value="">加载中...</option>';
+        try {
+            const response = await fetch(`${origin}/api/v1/rag/query_rag_tag_list`);
+            const result = await response.json();
+            const tags = Array.isArray(result.data) ? result.data : [];
+            ragTagSelect.innerHTML = '';
+            if (!tags.length) {
+                ragTagSelect.innerHTML = '<option value="">暂无知识库标签</option>';
+                return;
+            }
+            tags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag;
+                ragTagSelect.appendChild(option);
             });
-            chatList.appendChild(button);
-        });
-
-        chatCount.textContent = String(chats.length);
-    }
-
-    function createMessageBubble(message) {
-        const wrapper = document.createElement('div');
-        const isUser = message.role === 'user';
-        wrapper.className = [
-            'max-w-[88%] rounded-[28px] border px-5 py-4 shadow-sm',
-            isUser
-                ? 'ml-auto border-sky-200 bg-sky-50'
-                : 'mr-auto border-emerald-200 bg-emerald-50'
-        ].join(' ');
-
-        wrapper.innerHTML = `
-            <div class="mb-2 flex items-center justify-between gap-3">
-                <span class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">${isUser ? 'USER' : 'ASSISTANT'}</span>
-                ${message.streaming ? '<span class="rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-medium text-amber-600">输出中</span>' : ''}
-            </div>
-            <div class="text-sm leading-7 text-slate-700">${message.content ? formatText(message.content) : '<span class="text-slate-400">等待响应...</span>'}</div>
-        `;
-        return wrapper;
-    }
-
-    function renderMessages() {
-        const activeChat = getActiveChat();
-        messageList.innerHTML = '';
-
-        if (!activeChat) {
-            messageList.innerHTML = `
-                <div class="rounded-[28px] border border-dashed border-sky-200 bg-sky-50/70 px-5 py-6 text-sm leading-6 text-slate-500">
-                    左侧点击“新建聊天”后开始对话。支持按钮发送，也支持 <span class="font-medium text-slate-700">Ctrl/Command + Enter</span> 快捷发送。
-                </div>
-            `;
-            return;
+        } catch (error) {
+            ragTagSelect.innerHTML = '<option value="">标签加载失败</option>';
         }
-
-        if (activeChat.messages.length === 0) {
-            messageList.innerHTML = `
-                <div class="rounded-[28px] border border-dashed border-emerald-200 bg-emerald-50/70 px-5 py-6 text-sm leading-6 text-slate-500">
-                    当前会话还没有消息。输入内容后点击发送，系统会通过 EventSource 建立流式连接。
-                </div>
-            `;
-            return;
-        }
-
-        activeChat.messages.forEach(message => {
-            messageList.appendChild(createMessageBubble(message));
-        });
-
-        messageList.scrollTop = messageList.scrollHeight;
-    }
-
-    function renderAll() {
-        renderChatList();
-        renderMessages();
-        updateHeader();
     }
 
     function createChat() {
@@ -291,67 +263,123 @@
             messages: [],
             streaming: false
         };
-
         chats.unshift(chat);
         activeChatId = chat.id;
         closeStream();
         renderAll();
-        syncStatusForChat(chat);
+        setStatus('ready', '会话已创建，可以开始发送消息。');
         messageInput.focus();
+    }
+
+    function renderChatList() {
+        chatList.innerHTML = '';
+        if (!chats.length) {
+            chatList.innerHTML = '<div class="rounded-[22px] border border-dashed border-slate-200 bg-white/70 px-4 py-5 text-sm text-slate-500">当前还没有聊天，会话将在这里展示。</div>';
+            return;
+        }
+
+        chats.forEach(chat => {
+            const item = document.createElement('button');
+            const selected = chat.id === activeChatId;
+            const preview = chat.messages.length ? chat.messages[chat.messages.length - 1].content.slice(0, 42) : '还没有消息';
+            item.type = 'button';
+            item.className = [
+                'w-full rounded-[22px] border px-4 py-3 text-left transition',
+                selected ? 'border-sky-300 bg-sky-50 shadow-[0_15px_30px_-24px_rgba(14,165,233,0.8)]' : 'border-slate-200 bg-white hover:border-sky-200 hover:bg-sky-50/60'
+            ].join(' ');
+            item.innerHTML = `
+                <div class="flex items-center justify-between gap-3">
+                    <div class="truncate text-sm font-semibold text-slate-900">${escapeHtml(chat.title)}</div>
+                    <span class="rounded-full ${chat.streaming ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'} px-2.5 py-1 text-[11px] font-semibold">
+                        ${chat.streaming ? 'STREAM' : 'CHAT'}
+                    </span>
+                </div>
+                <div class="mt-2 max-h-10 overflow-hidden text-xs leading-5 text-slate-500">${escapeHtml(preview)}</div>
+            `;
+            item.addEventListener('click', () => {
+                activeChatId = chat.id;
+                renderAll();
+                setStatus(chat.streaming ? 'stream' : 'ready', chat.streaming ? '当前会话正在流式输出。' : '已切换会话。');
+            });
+            chatList.appendChild(item);
+        });
+    }
+
+    function renderMessages() {
+        const activeChat = getActiveChat();
+        messageList.innerHTML = '';
+        if (!activeChat) {
+            messageList.innerHTML = '<div class="rounded-[28px] border border-dashed border-sky-200 bg-sky-50/70 px-5 py-6 text-sm leading-6 text-slate-500">左侧先创建会话，再选择模型提供方和会话模式。发送时将通过 EventSource 调用对应的流式接口。</div>';
+            return;
+        }
+
+        if (!activeChat.messages.length) {
+            messageList.innerHTML = '<div class="rounded-[28px] border border-dashed border-emerald-200 bg-emerald-50/70 px-5 py-6 text-sm leading-6 text-slate-500">当前会话还没有消息。可以切到 OpenAI 或 Ollama，也可以切到 RAG 模式进行知识库问答。</div>';
+            return;
+        }
+
+        activeChat.messages.forEach(message => {
+            const bubble = document.createElement('div');
+            const isUser = message.role === 'user';
+            bubble.className = [
+                'max-w-[88%] rounded-[28px] border px-5 py-4 shadow-sm',
+                isUser ? 'ml-auto border-sky-200 bg-sky-50' : 'mr-auto border-emerald-200 bg-emerald-50'
+            ].join(' ');
+            bubble.innerHTML = `
+                <div class="mb-2 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">${isUser ? 'USER' : 'ASSISTANT'}</span>
+                    ${message.streaming ? '<span class="rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-amber-600">输出中</span>' : ''}
+                </div>
+                <div class="text-sm leading-7 text-slate-700">${message.content ? formatText(message.content) : '<span class="text-slate-400">等待响应...</span>'}</div>
+            `;
+            messageList.appendChild(bubble);
+        });
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function renderAll() {
+        const activeChat = getActiveChat();
+        renderChatList();
+        renderMessages();
+        if (!activeChat) {
+            activeChatTitle.textContent = '未选择会话';
+            renameChatBtn.disabled = true;
+            deleteChatBtn.disabled = true;
+            return;
+        }
+        activeChatTitle.textContent = activeChat.title;
+        renameChatBtn.disabled = false;
+        deleteChatBtn.disabled = false;
     }
 
     function renameChat() {
         const activeChat = getActiveChat();
-        if (!activeChat) {
-            return;
-        }
-
+        if (!activeChat) return;
         const newTitle = window.prompt('请输入新的聊天名称', activeChat.title);
-        if (!newTitle) {
-            return;
-        }
-
+        if (!newTitle) return;
         activeChat.title = newTitle.trim() || activeChat.title;
         renderAll();
     }
 
     function deleteChat() {
         const activeChat = getActiveChat();
-        if (!activeChat) {
-            return;
-        }
-
-        const confirmed = window.confirm(`确认删除“${activeChat.title}”？`);
-        if (!confirmed) {
-            return;
-        }
-
-        if (activeChat.streaming) {
-            closeStream();
-        }
-
+        if (!activeChat) return;
+        if (!window.confirm(`确认删除“${activeChat.title}”？`)) return;
+        closeStream();
         const index = chats.findIndex(chat => chat.id === activeChat.id);
         chats.splice(index, 1);
         activeChatId = chats[0] ? chats[0].id : null;
         renderAll();
-        syncStatusForChat(getActiveChat());
+        setStatus(activeChatId ? 'ready' : 'idle', activeChatId ? '会话已删除，已切换到其他会话。' : '会话已删除。');
     }
 
     function normalizePayload(raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-            return parsed[0] || null;
-        }
-        return parsed;
+        return Array.isArray(parsed) ? parsed[0] || null : parsed;
     }
 
     function sendMessage() {
         const activeChat = getActiveChat();
-        const serverOrigin = serverOriginInput.value.trim();
-        const apiPath = apiPathInput.value.trim();
-        const model = modelInput.value.trim();
-        const text = messageInput.value.trim();
-
         if (!activeChat) {
             window.alert('请先新建一个聊天。');
             return;
@@ -362,66 +390,66 @@
             return;
         }
 
-        if (!serverOrigin || !apiPath || !model || !text) {
-            setStatus('请完整填写服务地址、接口路径、模型和输入内容。', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+        const origin = serverOriginInput.value.trim();
+        const model = modelInput.value.trim();
+        const content = messageInput.value.trim();
+        const ragTag = getSelectedRagTag();
+
+        if (!origin || !model || !content) {
+            setStatus('error', '请完整填写服务地址、模型和消息内容。');
+            return;
+        }
+        if (chatModeSelect.value === 'rag' && !ragTag) {
+            setStatus('error', 'RAG 模式下必须提供 ragTag。');
             return;
         }
 
         closeStream();
 
-        const userMessage = {
-            id: `msg-${Date.now()}-user`,
-            role: 'user',
-            content: text,
-            streaming: false
-        };
-        const assistantMessage = {
-            id: `msg-${Date.now()}-assistant`,
-            role: 'assistant',
-            content: '',
-            streaming: true
-        };
-
+        const userMessage = { role: 'user', content, streaming: false };
+        const assistantMessage = { role: 'assistant', content: '', streaming: true };
         activeChat.messages.push(userMessage, assistantMessage);
         activeChat.streaming = true;
         renderAll();
+        setStatus('stream', '正在连接流式接口...');
 
-        messageInput.value = '';
-        setStatus('正在连接流式接口...', 'STREAM', 'rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-600');
+        const params = new URLSearchParams();
+        params.set('model', model);
+        params.set('message', content);
+        if (chatModeSelect.value === 'rag') {
+            params.set('ragTag', ragTag);
+        }
 
-        const apiUrl = `${serverOrigin}${apiPath}?model=${encodeURIComponent(model)}&message=${encodeURIComponent(text)}`;
+        const apiUrl = `${origin}${getEndpointPath()}?${params.toString()}`;
         eventSource = new EventSource(apiUrl);
 
         eventSource.onmessage = (event) => {
             try {
                 const payload = normalizePayload(event.data);
-                if (!payload || !payload.result) {
-                    return;
-                }
+                if (!payload || !payload.result) return;
 
-                const content = payload.result.output && payload.result.output.content;
+                const responseContent = payload.result.output && payload.result.output.content;
                 const finishReason = payload.result.metadata && payload.result.metadata.finishReason;
 
-                if (typeof content === 'string' && content.length > 0) {
-                    assistantMessage.content += content;
+                if (typeof responseContent === 'string' && responseContent.length > 0) {
+                    assistantMessage.content += responseContent;
                 }
 
                 if (finishReason === 'STOP') {
                     assistantMessage.streaming = false;
                     activeChat.streaming = false;
                     closeStream();
-                    setStatus('应答完成。', 'DONE', 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600');
+                    setStatus('success', '应答完成。');
                 } else {
-                    setStatus('模型正在输出中...', 'STREAM', 'rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-600');
+                    setStatus('stream', '模型正在输出中...');
                 }
 
                 renderAll();
             } catch (error) {
-                console.error('解析流式数据失败', error, event.data);
                 assistantMessage.streaming = false;
                 activeChat.streaming = false;
                 closeStream();
-                setStatus('数据解析失败，请检查 SSE 输出格式。', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+                setStatus('error', '数据解析失败，请检查 SSE 输出格式。');
                 renderAll();
             }
         };
@@ -430,9 +458,12 @@
             assistantMessage.streaming = false;
             activeChat.streaming = false;
             closeStream();
-            setStatus('流连接异常或已结束，请检查服务端是否返回 text/event-stream。', 'ERROR', 'rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-600');
+            setStatus('error', '流连接异常或已结束，请检查接口路径与 text/event-stream 配置。');
             renderAll();
         };
+
+        messageInput.value = '';
+        updateRequestPreview();
     }
 
     newChatBtn.addEventListener('click', createChat);
@@ -448,9 +479,9 @@
             if (lastMessage && lastMessage.role === 'assistant') {
                 lastMessage.streaming = false;
             }
+            renderAll();
         }
-        setStatus('已手动停止输出。', 'STOPPED', 'rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-600');
-        renderAll();
+        setStatus('stopped', '已手动停止输出。');
     });
 
     messageInput.addEventListener('keydown', (event) => {
@@ -459,16 +490,21 @@
         }
     });
 
-    serverOriginInput.addEventListener('input', updateRequestPreview);
-    apiPathInput.addEventListener('input', updateRequestPreview);
-    modelInput.addEventListener('input', updateRequestPreview);
+    [serverOriginInput, providerSelect, chatModeSelect, modelInput, ragTagSelect, ragTagInput].forEach(element => {
+        element.addEventListener('input', updateRequestPreview);
+        element.addEventListener('change', updateRequestPreview);
+    });
     messageInput.addEventListener('input', updateRequestPreview);
+    chatModeSelect.addEventListener('change', updateRagVisibility);
+    refreshTagsBtn.addEventListener('click', loadRagTags);
 
     renameChatBtn.disabled = true;
     deleteChatBtn.disabled = true;
-    renderAll();
-    syncStatusForChat(null);
+    updateRagVisibility();
     updateRequestPreview();
+    loadRagTags();
+    renderAll();
+    setStatus('idle', '请先新建或选择一个聊天。');
 </script>
 </body>
 </html>

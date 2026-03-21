@@ -89,8 +89,9 @@ public class RAGController implements IRAGService {
         return Response.<String>builder().code("0000").info("success").build();
     }
 
+    @PostMapping(value = "analyze_git_repository")
     @Override
-    public Response<String> analyzeGitRepository(String repoURL, String username, String token) throws Exception {
+    public Response<String> analyzeGitRepository(@RequestParam String repoURL, @RequestParam String username, @RequestParam String token) throws Exception {
         String localPath = "./cloned-repo";
         String projectName = extractProjectName(repoURL);
 

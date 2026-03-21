@@ -3,123 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知识库上传</title>
+    <title>RAG Upload</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.45),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(134,239,172,0.38),_transparent_28%),linear-gradient(180deg,_#f8fcff_0%,_#f4fbf7_100%)] text-slate-800">
-<div class="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-    <header class="mb-6 rounded-[30px] border border-white/70 bg-white/80 px-6 py-6 shadow-[0_30px_80px_-40px_rgba(14,165,233,0.45)] backdrop-blur">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.5),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(134,239,172,0.42),_transparent_30%),linear-gradient(180deg,_#f8fcff_0%,_#f6fffb_100%)] text-slate-800">
+<div class="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
+    <header class="mb-5 rounded-[28px] border border-white/70 bg-white/80 px-6 py-5 shadow-[0_30px_80px_-42px_rgba(14,165,233,0.45)] backdrop-blur">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">Knowledge Upload</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">知识库文件上传</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                    使用原生 HTML、JavaScript 与 Tailwind CSS 构建。支持输入知识库名称 `ragTag`，并上传 `md`、`txt`、`sql` 文件到服务端接口。
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">RAG Knowledge</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">知识库上传台</h1>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                    对应 `RAGController` 中的 `file/upload` 与 `query_rag_tag_list`。支持拖拽上传 `.md`、`.txt`、`.sql` 文件，并查看当前已存在的知识库标签。
                 </p>
             </div>
-            <div class="rounded-[24px] border border-sky-100 bg-sky-50/80 px-5 py-4 text-sm text-slate-600">
-                <div class="font-medium text-slate-900">默认接口</div>
-                <div class="mt-1 break-all font-mono text-xs leading-5 text-slate-500">http://localhost:8090/api/v1/rag/file/upload</div>
-            </div>
+            <nav class="flex flex-wrap gap-2">
+                <a href="./index.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">聊天页</a>
+                <a href="./upload.html" class="rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm">上传页</a>
+                <a href="./git.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">Git 页</a>
+            </nav>
         </div>
     </header>
 
-    <main class="grid flex-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <section class="rounded-[30px] border border-white/70 bg-white/85 p-6 shadow-[0_28px_80px_-42px_rgba(34,197,94,0.35)] backdrop-blur">
+    <main class="grid flex-1 gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <section class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(34,197,94,0.32)] backdrop-blur">
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h2 class="text-xl font-semibold text-slate-900">上传配置</h2>
-                    <p class="mt-1 text-sm text-slate-500">填写知识库名称，选择文件后提交。</p>
+                    <p class="mt-1 text-sm text-slate-500">上传接口默认对接 RAG 文件导入能力。</p>
                 </div>
                 <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">POST multipart/form-data</span>
             </div>
 
             <div class="mt-6 space-y-5">
                 <label class="block">
-                    <span class="mb-2 block text-sm font-medium text-slate-700">接口地址</span>
-                    <input id="uploadUrl" type="text" value="http://localhost:8090/api/v1/rag/file/upload"
+                    <span class="mb-2 block text-sm font-medium text-slate-700">服务地址</span>
+                    <input id="serverOrigin" type="text" value="http://localhost:8090"
                            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
                 </label>
-
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">上传路径</span>
+                    <input id="uploadPath" type="text" value="/api/v1/rag/file/upload"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                </label>
                 <label class="block">
                     <span class="mb-2 block text-sm font-medium text-slate-700">知识库名称 `ragTag`</span>
-                    <input id="ragTag" type="text" placeholder="例如：company-docs"
+                    <input id="ragTag" type="text" placeholder="例如：project-docs"
                            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
                 </label>
 
-                <div>
-                    <div class="mb-2 flex items-center justify-between gap-3">
-                        <span class="text-sm font-medium text-slate-700">知识库文件 `file`</span>
-                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">支持 md / txt / sql</span>
-                    </div>
-
-                    <label id="dropZone" class="group flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[28px] border border-dashed border-sky-200 bg-gradient-to-br from-sky-50 to-emerald-50 px-6 py-8 text-center transition hover:border-sky-400 hover:from-white hover:to-sky-50">
-                        <input id="fileInput" type="file" class="hidden" multiple accept=".md,.txt,.sql,text/markdown,text/plain,application/sql,.text,.markdown">
-                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm transition group-hover:scale-105">+</div>
-                        <div class="mt-4 text-lg font-semibold text-slate-900">拖拽文件到这里，或点击选择</div>
-                        <div class="mt-2 text-sm leading-6 text-slate-500">
-                            一次可上传多个文件。前端会校验扩展名，仅允许 <span class="font-medium text-slate-700">.md</span>、<span class="font-medium text-slate-700">.txt</span>、<span class="font-medium text-slate-700">.sql</span>。
+                <div class="rounded-[26px] border border-dashed border-sky-200 bg-gradient-to-br from-sky-50 to-emerald-50 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold text-slate-900">知识库文件 `file`</div>
+                            <div class="mt-1 text-xs text-slate-500">支持 `.md`、`.txt`、`.sql`，可一次选择多个。</div>
                         </div>
+                        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sky-600">拖拽上传</span>
+                    </div>
+                    <label id="dropZone" class="flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-sky-200 bg-white/75 px-6 py-8 text-center transition hover:border-sky-400 hover:bg-white">
+                        <input id="fileInput" type="file" class="hidden" multiple accept=".md,.txt,.sql,text/markdown,text/plain,application/sql">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-50 text-3xl text-sky-500 shadow-sm">+</div>
+                        <div class="mt-4 text-lg font-semibold text-slate-900">拖拽文件到这里，或点击选择</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-500">页面会自动校验扩展名，并将多个文件按同名字段 `file` 提交。</div>
                     </label>
                 </div>
 
+                <div class="rounded-[22px] bg-slate-50 px-4 py-4">
+                    <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">请求预览</div>
+                    <div id="requestPreview" class="mt-2 break-all font-mono text-xs leading-5 text-slate-600">http://localhost:8090/api/v1/rag/file/upload</div>
+                </div>
+
                 <div class="flex flex-wrap gap-3">
-                    <button id="uploadBtn" class="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-600 focus:outline-none focus:ring-4 focus:ring-sky-200">
-                        开始上传
-                    </button>
-                    <button id="clearBtn" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100">
-                        清空选择
-                    </button>
+                    <button id="uploadBtn" class="rounded-2xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-600">开始上传</button>
+                    <button id="clearBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900">清空选择</button>
+                    <button id="refreshTagsBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">刷新知识库列表</button>
                 </div>
             </div>
         </section>
 
-        <section class="flex flex-col gap-6">
-            <div class="rounded-[30px] border border-white/70 bg-white/85 p-6 shadow-[0_28px_80px_-42px_rgba(14,165,233,0.28)] backdrop-blur">
+        <section class="flex flex-col gap-5">
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(14,165,233,0.28)] backdrop-blur">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-semibold text-slate-900">待上传文件</h2>
-                        <p class="mt-1 text-sm text-slate-500">上传前确认文件列表。</p>
+                        <p class="mt-1 text-sm text-slate-500">上传前可以移除不需要的文件。</p>
                     </div>
                     <span id="fileCount" class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-600">0 个文件</span>
                 </div>
                 <div id="fileList" class="mt-5 space-y-3">
-                    <div class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-sm leading-6 text-slate-500">
-                        当前还没有选择文件。
-                    </div>
+                    <div class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-sm leading-6 text-slate-500">当前还没有选择文件。</div>
                 </div>
             </div>
 
-            <div class="rounded-[30px] border border-white/70 bg-white/85 p-6 shadow-[0_28px_80px_-42px_rgba(34,197,94,0.25)] backdrop-blur">
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(34,197,94,0.28)] backdrop-blur">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">知识库标签</h2>
+                        <p class="mt-1 text-sm text-slate-500">来自 `query_rag_tag_list` 接口。</p>
+                    </div>
+                    <span id="tagCount" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">0 个标签</span>
+                </div>
+                <div id="ragTagList" class="mt-5 flex flex-wrap gap-2">
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">尚未加载</span>
+                </div>
+            </div>
+
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(244,114,182,0.18)] backdrop-blur">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-semibold text-slate-900">上传状态</h2>
-                        <p class="mt-1 text-sm text-slate-500">显示接口调用结果与错误信息。</p>
+                        <p class="mt-1 text-sm text-slate-500">展示接口响应和错误信息。</p>
                     </div>
                     <span id="statusBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">IDLE</span>
                 </div>
-                <div id="statusPanel" class="mt-5 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
-                    请先填写 `ragTag` 并选择待上传文件。
-                </div>
-                <div class="mt-4 rounded-[24px] bg-emerald-50 px-5 py-4 text-sm leading-6 text-emerald-700">
-                    服务端参数说明：`ragTag` 为知识库名称，`file` 为多文件字段名。当前页面提交时会逐个追加多个 `file` 字段。
-                </div>
+                <div id="statusPanel" class="mt-5 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">请先填写 `ragTag` 并选择文件。</div>
             </div>
         </section>
     </main>
 </div>
 
 <script>
-    const uploadUrlInput = document.getElementById('uploadUrl');
+    const serverOriginInput = document.getElementById('serverOrigin');
+    const uploadPathInput = document.getElementById('uploadPath');
     const ragTagInput = document.getElementById('ragTag');
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
+    const requestPreview = document.getElementById('requestPreview');
     const uploadBtn = document.getElementById('uploadBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const fileList = document.getElementById('fileList');
+    const refreshTagsBtn = document.getElementById('refreshTagsBtn');
     const fileCount = document.getElementById('fileCount');
-    const statusPanel = document.getElementById('statusPanel');
+    const fileList = document.getElementById('fileList');
+    const tagCount = document.getElementById('tagCount');
+    const ragTagList = document.getElementById('ragTagList');
     const statusBadge = document.getElementById('statusBadge');
+    const statusPanel = document.getElementById('statusPanel');
 
     const allowedExtensions = ['md', 'txt', 'sql'];
     let selectedFiles = [];
@@ -131,17 +149,16 @@
             success: 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600',
             error: 'rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600'
         };
-
-        const labels = {
-            idle: 'IDLE',
-            loading: 'UPLOADING',
-            success: 'SUCCESS',
-            error: 'ERROR'
-        };
-
+        const labels = { idle: 'IDLE', loading: 'UPLOADING', success: 'SUCCESS', error: 'ERROR' };
         statusBadge.className = styles[type];
         statusBadge.textContent = labels[type];
         statusPanel.innerHTML = message;
+    }
+
+    function updateRequestPreview() {
+        const origin = serverOriginInput.value.trim() || 'http://localhost:8090';
+        const path = uploadPathInput.value.trim() || '/api/v1/rag/file/upload';
+        requestPreview.textContent = `${origin}${path}`;
     }
 
     function getExtension(fileName) {
@@ -155,75 +172,50 @@
         return `${(size / 1024 / 1024).toFixed(2)} MB`;
     }
 
-    function renderFileList() {
-        fileList.innerHTML = '';
+    function renderFiles() {
         fileCount.textContent = `${selectedFiles.length} 个文件`;
-
+        fileList.innerHTML = '';
         if (!selectedFiles.length) {
-            fileList.innerHTML = `
-                <div class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-sm leading-6 text-slate-500">
-                    当前还没有选择文件。
-                </div>
-            `;
+            fileList.innerHTML = '<div class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-5 py-6 text-sm leading-6 text-slate-500">当前还没有选择文件。</div>';
             return;
         }
 
         selectedFiles.forEach((file, index) => {
-            const extension = getExtension(file.name);
             const item = document.createElement('div');
             item.className = 'flex items-center justify-between gap-4 rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-sm';
             item.innerHTML = `
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-3">
-                        <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase text-sky-600">${extension}</span>
+                        <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase text-sky-600">${getExtension(file.name)}</span>
                         <div class="truncate text-sm font-semibold text-slate-900">${file.name}</div>
                     </div>
                     <div class="mt-2 text-xs text-slate-500">大小：${formatSize(file.size)}</div>
                 </div>
-                <button data-index="${index}" class="remove-file rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-rose-200 hover:text-rose-500">
-                    移除
-                </button>
+                <button data-index="${index}" class="remove-file rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-rose-200 hover:text-rose-500">移除</button>
             `;
             fileList.appendChild(item);
         });
 
         document.querySelectorAll('.remove-file').forEach(button => {
             button.addEventListener('click', () => {
-                const index = Number(button.dataset.index);
-                selectedFiles.splice(index, 1);
-                renderFileList();
+                selectedFiles.splice(Number(button.dataset.index), 1);
+                renderFiles();
             });
         });
     }
 
-    function collectValidFiles(fileCollection) {
-        const incomingFiles = Array.from(fileCollection);
+    function appendFiles(fileCollection) {
+        const invalidNames = [];
         const validFiles = [];
-        const invalidFiles = [];
-
-        incomingFiles.forEach(file => {
-            const extension = getExtension(file.name);
-            if (allowedExtensions.includes(extension)) {
-                validFiles.push(file);
-            } else {
-                invalidFiles.push(file.name);
-            }
+        Array.from(fileCollection).forEach(file => {
+            if (allowedExtensions.includes(getExtension(file.name))) validFiles.push(file);
+            else invalidNames.push(file.name);
         });
 
-        if (invalidFiles.length) {
-            setStatus('error', `以下文件类型不支持，已忽略：<span class="font-medium">${invalidFiles.join('、')}</span>`);
-        } else if (incomingFiles.length) {
+        if (invalidNames.length) {
+            setStatus('error', `以下文件不支持，已忽略：<span class="font-medium">${invalidNames.join('、')}</span>`);
+        } else if (validFiles.length) {
             setStatus('idle', '文件校验通过，可以上传。');
-        }
-
-        return validFiles;
-    }
-
-    function appendFiles(fileCollection) {
-        const validFiles = collectValidFiles(fileCollection);
-        if (!validFiles.length) {
-            renderFileList();
-            return;
         }
 
         const exists = new Set(selectedFiles.map(file => `${file.name}_${file.size}_${file.lastModified}`));
@@ -234,24 +226,48 @@
                 exists.add(key);
             }
         });
+        renderFiles();
+    }
 
-        renderFileList();
+    async function loadRagTags() {
+        const origin = serverOriginInput.value.trim() || 'http://localhost:8090';
+        try {
+            const response = await fetch(`${origin}/api/v1/rag/query_rag_tag_list`);
+            const result = await response.json();
+            const tags = Array.isArray(result.data) ? result.data : [];
+            tagCount.textContent = `${tags.length} 个标签`;
+            ragTagList.innerHTML = '';
+            if (!tags.length) {
+                ragTagList.innerHTML = '<span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">暂无标签</span>';
+                return;
+            }
+            tags.forEach(tag => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100';
+                item.textContent = tag;
+                item.addEventListener('click', () => {
+                    ragTagInput.value = tag;
+                });
+                ragTagList.appendChild(item);
+            });
+        } catch (error) {
+            ragTagList.innerHTML = '<span class="rounded-full bg-rose-50 px-3 py-1 text-sm text-rose-600">标签加载失败</span>';
+        }
     }
 
     async function uploadFiles() {
-        const uploadUrl = uploadUrlInput.value.trim();
+        const origin = serverOriginInput.value.trim();
+        const path = uploadPathInput.value.trim();
         const ragTag = ragTagInput.value.trim();
-
-        if (!uploadUrl) {
-            setStatus('error', '请先填写上传接口地址。');
+        if (!origin || !path) {
+            setStatus('error', '请完整填写服务地址和上传路径。');
             return;
         }
-
         if (!ragTag) {
             setStatus('error', '请先填写知识库名称 `ragTag`。');
             return;
         }
-
         if (!selectedFiles.length) {
             setStatus('error', '请先选择至少一个待上传文件。');
             return;
@@ -259,36 +275,27 @@
 
         const formData = new FormData();
         formData.append('ragTag', ragTag);
-        selectedFiles.forEach(file => {
-            formData.append('file', file);
-        });
+        selectedFiles.forEach(file => formData.append('file', file));
 
         uploadBtn.disabled = true;
-        setStatus('loading', `正在上传到 <span class="font-medium">${uploadUrl}</span>，共 ${selectedFiles.length} 个文件...`);
-
+        setStatus('loading', `正在上传到 <span class="font-medium">${origin}${path}</span>，共 ${selectedFiles.length} 个文件...`);
         try {
-            const response = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formData
-            });
-
-            const responseText = await response.text();
-
+            const response = await fetch(`${origin}${path}`, { method: 'POST', body: formData });
+            const raw = await response.text();
             if (!response.ok) {
-                setStatus('error', `上传失败，HTTP ${response.status}。<br><span class="font-medium">响应内容：</span><br>${responseText || '无返回内容'}`);
+                setStatus('error', `上传失败，HTTP ${response.status}。<br>${raw || '无响应内容'}`);
                 return;
             }
-
-            let formattedResponse = responseText;
+            let content = raw;
             try {
-                formattedResponse = `<pre class="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-slate-700">${JSON.stringify(JSON.parse(responseText), null, 2)}</pre>`;
+                content = `<pre class="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-slate-700">${JSON.stringify(JSON.parse(raw), null, 2)}</pre>`;
             } catch (error) {
-                formattedResponse = `<div class="break-all">${responseText || '上传成功，服务端未返回内容。'}</div>`;
+                content = `<div class="break-all">${raw || '上传成功'}</div>`;
             }
-
-            setStatus('success', `上传成功，知识库名称：<span class="font-medium">${ragTag}</span><br>已提交 ${selectedFiles.length} 个文件。<br><span class="font-medium">服务端响应：</span>${formattedResponse}`);
+            setStatus('success', `上传成功，ragTag：<span class="font-medium">${ragTag}</span><br>服务端响应：${content}`);
+            loadRagTags();
         } catch (error) {
-            setStatus('error', `请求失败：<span class="font-medium">${error.message}</span><br>请检查接口地址、跨域配置或服务端是否已启动。`);
+            setStatus('error', `请求失败：<span class="font-medium">${error.message}</span>`);
         } finally {
             uploadBtn.disabled = false;
         }
@@ -298,11 +305,9 @@
         event.preventDefault();
         dropZone.classList.add('border-sky-400', 'bg-white');
     });
-
     dropZone.addEventListener('dragleave', () => {
         dropZone.classList.remove('border-sky-400', 'bg-white');
     });
-
     dropZone.addEventListener('drop', (event) => {
         event.preventDefault();
         dropZone.classList.remove('border-sky-400', 'bg-white');
@@ -313,18 +318,20 @@
         appendFiles(event.target.files);
         fileInput.value = '';
     });
-
     uploadBtn.addEventListener('click', uploadFiles);
-
     clearBtn.addEventListener('click', () => {
         selectedFiles = [];
         fileInput.value = '';
-        renderFileList();
+        renderFiles();
         setStatus('idle', '已清空文件选择。');
     });
+    refreshTagsBtn.addEventListener('click', loadRagTags);
+    [serverOriginInput, uploadPathInput].forEach(element => element.addEventListener('input', updateRequestPreview));
 
-    renderFileList();
-    setStatus('idle', '请先填写 `ragTag` 并选择待上传文件。');
+    updateRequestPreview();
+    renderFiles();
+    loadRagTags();
+    setStatus('idle', '请先填写 `ragTag` 并选择文件。');
 </script>
 </body>
 </html>

@@ -27,13 +27,20 @@ spring:
       # 连接测试query
       connection-test-query: SELECT 1
   ai:
+    openai:
+      base-url: https://apis.itedus.cn
+      api-key: sk-iL8992lPr(ur api)331b373a8aD3
+      embedding:
+        options:
+          model: text-embedding-ada-002
     ollama:
       base-url: http://127.0.0.1:11434
       embedding:
         options:
           num-batch: 512
-        model: nomic-embed-text
-
+          model: nomic-embed-text
+    rag:
+      embed: nomic-embed-text
 
 # Redis
 redis:

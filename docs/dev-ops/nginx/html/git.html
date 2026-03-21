@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git RAG Import</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.5),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(134,239,172,0.42),_transparent_30%),linear-gradient(180deg,_#f8fcff_0%,_#f6fffb_100%)] text-slate-800">
+<div class="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
+    <header class="mb-5 rounded-[28px] border border-white/70 bg-white/80 px-6 py-5 shadow-[0_30px_80px_-42px_rgba(14,165,233,0.45)] backdrop-blur">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">RAG Knowledge</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Git 仓库解析台</h1>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                    对应 `RAGController.analyzeGitRepository(repoURL, username, token)`。页面支持填写仓库地址、账号、令牌，并在提交后展示请求结果与标签列表刷新结果。
+                </p>
+            </div>
+            <nav class="flex flex-wrap gap-2">
+                <a href="./index.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">聊天页</a>
+                <a href="./upload.html" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">上传页</a>
+                <a href="./git.html" class="rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm">Git 页</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="grid flex-1 gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <section class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(34,197,94,0.32)] backdrop-blur">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-900">Git 解析配置</h2>
+                    <p class="mt-1 text-sm text-slate-500">将仓库克隆并写入知识库向量存储。</p>
+                </div>
+                <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600">接口路径可调整</span>
+            </div>
+
+            <div class="mt-6 space-y-5">
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">服务地址</span>
+                    <input id="serverOrigin" type="text" value="http://localhost:8090"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                </label>
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">Git 解析路径</span>
+                    <input id="apiPath" type="text" value="/api/v1/rag/analyzeGitRepository"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                </label>
+                <label class="block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">仓库地址 `repoURL`</span>
+                    <input id="repoURL" type="text" placeholder="例如：https://github.com/example/project.git"
+                           class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                </label>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="mb-2 block text-sm font-medium text-slate-700">用户名 `username`</span>
+                        <input id="username" type="text" placeholder="Git 用户名"
+                               class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                    </label>
+                    <label class="block">
+                        <span class="mb-2 block text-sm font-medium text-slate-700">令牌 `token`</span>
+                        <input id="token" type="password" placeholder="Personal Access Token"
+                               class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100">
+                    </label>
+                </div>
+
+                <div class="rounded-[22px] bg-slate-50 px-4 py-4">
+                    <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">请求预览</div>
+                    <div id="requestPreview" class="mt-2 break-all font-mono text-xs leading-5 text-slate-600"></div>
+                </div>
+
+                <div class="rounded-[24px] bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800">
+                    当前后端代码中 `analyzeGitRepository(...)` 方法没有看到显式 `@GetMapping/@PostMapping`。因此这个页面把“Git 解析路径”暴露为可编辑字段，便于你按实际后端路由调整。
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <button id="analyzeBtn" class="rounded-2xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-600">开始解析</button>
+                    <button id="clearBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900">清空表单</button>
+                    <button id="refreshTagsBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600">刷新知识库列表</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(14,165,233,0.28)] backdrop-blur">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">项目推断</h2>
+                        <p class="mt-1 text-sm text-slate-500">根据仓库地址推断知识库标签名称。</p>
+                    </div>
+                    <span id="projectBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">UNKNOWN</span>
+                </div>
+                <div id="projectPreview" class="mt-5 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">请输入仓库地址后自动预览项目名。</div>
+            </div>
+
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(34,197,94,0.28)] backdrop-blur">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">知识库标签</h2>
+                        <p class="mt-1 text-sm text-slate-500">解析成功后可在此刷新查看。</p>
+                    </div>
+                    <span id="tagCount" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">0 个标签</span>
+                </div>
+                <div id="ragTagList" class="mt-5 flex flex-wrap gap-2">
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">尚未加载</span>
+                </div>
+            </div>
+
+            <div class="rounded-[30px] border border-white/70 bg-white/88 p-6 shadow-[0_28px_85px_-46px_rgba(244,114,182,0.18)] backdrop-blur">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">执行状态</h2>
+                        <p class="mt-1 text-sm text-slate-500">展示接口响应、404 或其他错误信息。</p>
+                    </div>
+                    <span id="statusBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">IDLE</span>
+                </div>
+                <div id="statusPanel" class="mt-5 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">请填写仓库信息后发起解析。</div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const serverOriginInput = document.getElementById('serverOrigin');
+    const apiPathInput = document.getElementById('apiPath');
+    const repoURLInput = document.getElementById('repoURL');
+    const usernameInput = document.getElementById('username');
+    const tokenInput = document.getElementById('token');
+    const requestPreview = document.getElementById('requestPreview');
+    const projectBadge = document.getElementById('projectBadge');
+    const projectPreview = document.getElementById('projectPreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const refreshTagsBtn = document.getElementById('refreshTagsBtn');
+    const tagCount = document.getElementById('tagCount');
+    const ragTagList = document.getElementById('ragTagList');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusPanel = document.getElementById('statusPanel');
+
+    function setStatus(type, message) {
+        const styles = {
+            idle: 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500',
+            loading: 'rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-600',
+            success: 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600',
+            error: 'rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600'
+        };
+        const labels = { idle: 'IDLE', loading: 'RUNNING', success: 'SUCCESS', error: 'ERROR' };
+        statusBadge.className = styles[type];
+        statusBadge.textContent = labels[type];
+        statusPanel.innerHTML = message;
+    }
+
+    function extractProjectName(repoURL) {
+        const value = repoURL.trim();
+        if (!value) return '';
+        const parts = value.split('/');
+        const last = parts[parts.length - 1] || '';
+        return last.replace(/\.git$/i, '');
+    }
+
+    function updateProjectPreview() {
+        const projectName = extractProjectName(repoURLInput.value);
+        if (!projectName) {
+            projectBadge.className = 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500';
+            projectBadge.textContent = 'UNKNOWN';
+            projectPreview.textContent = '请输入仓库地址后自动预览项目名。';
+            return;
+        }
+        projectBadge.className = 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600';
+        projectBadge.textContent = projectName;
+        projectPreview.innerHTML = `按当前后端逻辑，仓库将被解析为知识库标签：<span class="font-semibold text-slate-900">${projectName}</span>`;
+    }
+
+    function updateRequestPreview() {
+        const origin = serverOriginInput.value.trim() || 'http://localhost:8090';
+        const path = apiPathInput.value.trim() || '/api/v1/rag/analyzeGitRepository';
+        const params = new URLSearchParams();
+        params.set('repoURL', repoURLInput.value.trim() || 'https://github.com/example/project.git');
+        params.set('username', usernameInput.value.trim() || 'git-user');
+        params.set('token', tokenInput.value.trim() || '******');
+        requestPreview.textContent = `${origin}${path}?${params.toString()}`;
+    }
+
+    async function loadRagTags() {
+        const origin = serverOriginInput.value.trim() || 'http://localhost:8090';
+        try {
+            const response = await fetch(`${origin}/api/v1/rag/query_rag_tag_list`);
+            const result = await response.json();
+            const tags = Array.isArray(result.data) ? result.data : [];
+            tagCount.textContent = `${tags.length} 个标签`;
+            ragTagList.innerHTML = '';
+            if (!tags.length) {
+                ragTagList.innerHTML = '<span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500">暂无标签</span>';
+                return;
+            }
+            tags.forEach(tag => {
+                const item = document.createElement('span');
+                item.className = 'rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700';
+                item.textContent = tag;
+                ragTagList.appendChild(item);
+            });
+        } catch (error) {
+            ragTagList.innerHTML = '<span class="rounded-full bg-rose-50 px-3 py-1 text-sm text-rose-600">标签加载失败</span>';
+        }
+    }
+
+    async function analyzeRepository() {
+        const origin = serverOriginInput.value.trim();
+        const path = apiPathInput.value.trim();
+        const repoURL = repoURLInput.value.trim();
+        const username = usernameInput.value.trim();
+        const token = tokenInput.value.trim();
+
+        if (!origin || !path || !repoURL || !username || !token) {
+            setStatus('error', '请完整填写服务地址、接口路径、repoURL、username、token。');
+            return;
+        }
+
+        const params = new URLSearchParams({ repoURL, username, token });
+        analyzeBtn.disabled = true;
+        setStatus('loading', `正在请求 <span class="font-medium">${origin}${path}</span> 解析仓库，请稍候...`);
+        try {
+            const response = await fetch(`${origin}${path}?${params.toString()}`);
+            const raw = await response.text();
+            if (!response.ok) {
+                setStatus('error', `请求失败，HTTP ${response.status}。<br>${raw || '无响应内容'}<br><br>如果是 404，优先检查后端是否给 analyzeGitRepository 增加了映射注解。`);
+                return;
+            }
+            let content = raw;
+            try {
+                content = `<pre class="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-slate-700">${JSON.stringify(JSON.parse(raw), null, 2)}</pre>`;
+            } catch (error) {
+                content = `<div class="break-all">${raw || '请求成功'}</div>`;
+            }
+            setStatus('success', `仓库解析请求已完成。<br>服务端响应：${content}`);
+            loadRagTags();
+        } catch (error) {
+            setStatus('error', `请求异常：<span class="font-medium">${error.message}</span>`);
+        } finally {
+            analyzeBtn.disabled = false;
+        }
+    }
+
+    analyzeBtn.addEventListener('click', analyzeRepository);
+    clearBtn.addEventListener('click', () => {
+        repoURLInput.value = '';
+        usernameInput.value = '';
+        tokenInput.value = '';
+        updateProjectPreview();
+        updateRequestPreview();
+        setStatus('idle', '已清空表单。');
+    });
+    refreshTagsBtn.addEventListener('click', loadRagTags);
+
+    [serverOriginInput, apiPathInput, repoURLInput, usernameInput, tokenInput].forEach(element => {
+        element.addEventListener('input', updateRequestPreview);
+    });
+    repoURLInput.addEventListener('input', updateProjectPreview);
+
+    updateProjectPreview();
+    updateRequestPreview();
+    loadRagTags();
+    setStatus('idle', '请填写仓库信息后发起解析。');
+</script>
+</body>
+</html>

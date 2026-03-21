@@ -1,6 +1,5 @@
 package com.beaker.http;
 
-import com.alibaba.fastjson.JSON;
 import com.beaker.IAiService;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.messages.Message;
@@ -8,11 +7,14 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatClient;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.openai.OpenAiChatClient;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Resource;
@@ -23,35 +25,39 @@ import java.util.stream.Collectors;
 
 /**
  * @Author beaker
- * @Date 2026/3/20 13:17
- * @Description Ollama 实现 ai 服务
+ * @Date 2026/3/21 12:22
+ * @Description 使用 OpenAi 实现 api
  */
 @RestController
 @CrossOrigin("*")
-@RequestMapping("api/v1/ollama/")
-public class OllamaController implements IAiService {
+@RequestMapping("api/v1/openai/")
+public class OpenAiController implements IAiService {
 
     @Resource
-    private OllamaChatClient ollamaChatClient;
+    private OpenAiChatClient openAiChatClient;
     @Resource
     private PgVectorStore pgVectorStore;
 
-    /**
-     * curl http://localhost:8090/api/v1/ollama/generate?model=deepseek-r1:7b&message=1+1
-     */
     @GetMapping(value = "generate")
     @Override
-    public ChatResponse generate(@RequestParam String model, @RequestParam String message) {
-        return ollamaChatClient.call(new Prompt(message, OllamaOptions.create().withModel(model)));
+    public ChatResponse generate(String model, String message) {
+        return openAiChatClient.call(new Prompt(
+                message,
+                OpenAiChatOptions.builder()
+                        .withModel(model)
+                        .build()
+        ));
     }
 
-    /**
-     * curl http://localhost:8090/api/v1/ollama/generate_stream?model=deepseek-r1:7b&message=1+1
-     */
     @GetMapping(value = "generate_stream")
     @Override
-    public Flux<ChatResponse> generateStream(@RequestParam String model, @RequestParam String message) {
-        return ollamaChatClient.stream(new Prompt(message, OllamaOptions.create().withModel(model)));
+    public Flux<ChatResponse> generateStream(String model, String message) {
+        return openAiChatClient.stream(new Prompt(
+                message,
+                OpenAiChatOptions.builder()
+                        .withModel(model)
+                        .build()
+        ));
     }
 
     @GetMapping(value = "generate_stream_rag")
@@ -75,7 +81,7 @@ public class OllamaController implements IAiService {
         List<Document> documents = pgVectorStore.similaritySearch(request);
         String collectedDocuments = documents.stream().map(Document::getContent).collect(Collectors.joining());
 
-        // 将字符串填充到 system_message 的 document
+        // 将字符串填充到 system_message 的 {document}
         Message ragMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", collectedDocuments));
 
         // 消息数组
@@ -84,10 +90,11 @@ public class OllamaController implements IAiService {
         messages.add(ragMessage);
 
         // LLM 返回结果
-        return ollamaChatClient.stream(new Prompt(
+        return openAiChatClient.stream(new Prompt(
                 messages,
-                OllamaOptions.create()
+                OpenAiChatOptions.builder()
                         .withModel(model)
+                        .build()
         ));
     }
 }
