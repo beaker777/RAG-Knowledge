@@ -2,6 +2,8 @@ server:
   port: 8090
 
 spring:
+  main:
+    web-application-type: none
   datasource:
     driver-class-name: org.postgresql.Driver
     username: postgres
@@ -30,15 +32,17 @@ spring:
     openai:
       base-url: https://apis.itedus.cn
       api-key: sk-iL8992lPr(ur api)331b373a8aD3
+      embedding-model: text-embedding-ada-002
       embedding:
         options:
-          model: text-embedding-ada-002
+          num-batch: 1536
     ollama:
       base-url: http://127.0.0.1:11434
+      mode:
+      embedding-model: nomic-embed-text
       embedding:
         options:
-          num-batch: 512
-          model: nomic-embed-text
+          num-batch: 768
     rag:
       embed: nomic-embed-text
 
